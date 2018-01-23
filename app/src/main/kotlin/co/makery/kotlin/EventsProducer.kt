@@ -1,5 +1,6 @@
 package co.makery.kotlin
 
+import akka.Done
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.kafka.ProducerSettings
@@ -10,6 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.ByteArraySerializer
 import org.apache.kafka.common.serialization.StringSerializer
+import java.util.concurrent.CompletionStage
 
 class EventsProducer(system: ActorSystem, private val materializer: ActorMaterializer) {
 
@@ -17,11 +19,8 @@ class EventsProducer(system: ActorSystem, private val materializer: ActorMateria
     .create(system, ByteArraySerializer(), StringSerializer())
     .withBootstrapServers("localhost:9092")
 
-  fun run(source: Source<JsonNode, NotUsed>) {
-    source
-      .map { node ->
-        ProducerRecord<ByteArray, String>("kotlin-events", objectMapper.writeValueAsString(node))
-      }
+  fun write(events: Source<JsonNode, NotUsed>): CompletionStage<Done> =
+    events
+      .map { node -> ProducerRecord<ByteArray, String>("kotlin-events", objectMapper.writeValueAsString(node)) }
       .runWith(Producer.plainSink(settings), materializer)
-  }
 }

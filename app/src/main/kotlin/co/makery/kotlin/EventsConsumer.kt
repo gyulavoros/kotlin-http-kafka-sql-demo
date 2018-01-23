@@ -20,10 +20,8 @@ class EventsConsumer(system: ActorSystem) {
       .withGroupId("group")
       .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
 
-  fun events(): Source<JsonNode, NotUsed> =
+  fun read(): Source<JsonNode, NotUsed> =
     Consumer.plainSource(settings, Subscriptions.assignmentWithOffset(TopicPartition("kotlin-events", 0), 0L))
-      .map { record ->
-        objectMapper.readTree(record.value())
-      }
+      .map { record -> objectMapper.readTree(record.value()) }
       .mapMaterializedValue { NotUsed.getInstance() }
 }

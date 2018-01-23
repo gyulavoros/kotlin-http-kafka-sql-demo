@@ -14,6 +14,6 @@ fun main(vararg args: String) {
   val eventsConsumer = EventsConsumer(system)
   val pushEventProcessor = PushEventProcessor(materializer)
 
-  eventsProducer.run(gitHubClient.events())
-  pushEventProcessor.run(eventsConsumer.events())
+  eventsProducer.write(gitHubClient.events())
+  pushEventProcessor.run(eventsConsumer.read())
 }
